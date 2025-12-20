@@ -10,8 +10,8 @@ procedure Day1 is
       Direction : constant Character := Rotation (Rotation'First);
       Quantity : constant Positive := Positive'Value
          (Rotation (Rotation'First + 1 .. Rotation'Last));
-      Full_Turns : constant Natural := Quantity / 100;
-      Effective : constant Dial_Position := Dial_Position (Quantity mod 100);
+      Full_Turns : constant Natural := Quantity / Dial_Position'Modulus;
+      Effective : constant Dial_Position := Dial_Position'Mod (Quantity);
    begin
       Password_2 := Password_2 + Full_Turns;
       if Direction = 'L' then
@@ -20,7 +20,7 @@ procedure Day1 is
          end if;
          Dial := Dial - Effective;
       elsif Direction = 'R' then
-         if (Dial /= 0) and then ((99 - Dial) < Effective) then
+         if (Dial /= 0) and then ((Dial_Position'Last - Dial) < Effective) then
             Password_2 := Password_2 + 1;
          end if;
          Dial := Dial + Effective;
