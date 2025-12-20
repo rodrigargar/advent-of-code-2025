@@ -4,13 +4,11 @@ procedure Day1 is
    type Dial_Position is mod 100;
    Dial : Dial_Position := 50;
    Password : Natural := 0;
-   Document : File_Type;
-   Doc_Name : constant String := "document.txt";
 
    procedure Turn_Dial (Rotation : String) is
       Direction : Character := Rotation (Rotation'First);
-      Quantity : Dial_Position :=
-         Dial_Position'Value (Rotation (Rotation'First + 1 .. Rotation'Last));
+      Quantity : Dial_Position := Dial_Position (Positive'Value
+         (Rotation (Rotation'First + 1 .. Rotation'Last)) mod 100);
    begin
       if Direction = 'L' then
          Dial := Dial - Quantity;
@@ -19,6 +17,8 @@ procedure Day1 is
       end if;
    end Turn_Dial;
 
+   Document : File_Type;
+   Doc_Name : constant String := "input.txt";
 begin
    Open (Document, In_File, Doc_name);
    while not End_Of_File (Document) loop
