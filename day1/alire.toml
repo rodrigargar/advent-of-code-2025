@@ -1,0 +1,12 @@
+name = "day1"
+description = "Advent of Code 2025 Day 1"
+version = "0.1.0-dev"
+
+authors = ["Rodrigo Garcia"]
+maintainers = ["Rodrigo Garcia <rgarcia.garcia@gmail.com>"]
+maintainers-logins = ["rodrigargar"]
+licenses = "Apache-2.0"
+website = ""
+tags = ["contest"]
+
+executables = ["day1"]
