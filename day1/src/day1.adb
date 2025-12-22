@@ -28,7 +28,7 @@ procedure Day1 is
    end Turn_Dial;
 
    Document : File_Type;
-   Doc_Name : constant String := "input.txt";
+   Doc_Name : constant String := "document.txt";
 begin
    Open (Document, In_File, Doc_Name);
    while not End_Of_File (Document) loop
