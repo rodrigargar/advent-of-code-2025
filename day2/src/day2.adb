@@ -15,12 +15,17 @@ procedure Day2 is
 
    function Is_Invalid (Id : String) return Boolean is
    begin
-      if (Id'Length > 0) and then (Id'Length mod 2 = 0) then
-         return Id (Id'First .. Id'Length / 2) =
-                Id (Id'Length / 2 + 1 .. Id'Last);
-      else
-         return False;
-      end if;
+      -- To get the solution for part one of the puzzle,
+      -- replace the line below by:
+      -- for Reps in 2 .. 2 loop
+      for Reps in 2 .. Id'Length loop
+         if Id'Length mod Reps = 0 then
+            if Id = Reps * Id (Id'First .. Id'Length / Reps) then
+               return True;
+            end if;
+         end if;
+      end loop;
+      return False;
    end Is_Invalid;
 
    Id_Ranges : constant String := Read_Ranges ("test.txt");
@@ -38,7 +43,7 @@ begin
                   First => Id_First,
                   Last => Id_Last);
       exit when Id_Last = 0;
-      Put_Line("Inspecting range: " & Id_Ranges (Id_First .. Id_Last));
+      Put_Line ("Inspecting range: " & Id_Ranges (Id_First .. Id_Last));
       declare
          Id_Range : constant String := Id_Ranges (Id_First .. Id_Last);
          Dash_Position : constant Natural := Index (Id_Range, Dash);
@@ -47,7 +52,8 @@ begin
          Higher_Id : constant String :=
             Id_Range (Dash_Position + 1 .. Id_Range'Last);
       begin
-         for Current_Id in Long_Integer'Value (Lower_Id) .. Long_Integer'Value (Higher_Id) loop
+         for Current_Id in Long_Integer'Value (Lower_Id) ..
+                           Long_Integer'Value (Higher_Id) loop
             if Is_Invalid (Trim (Current_Id'Image, Ada.Strings.Left)) then
                Put_Line ("Found invalid ID:" & Current_Id'Image);
                Sum_Invalid_Ids := Sum_Invalid_Ids + Current_Id;
