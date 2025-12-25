@@ -59,6 +59,7 @@ procedure Day4 is
       end return;
    end Compute_Adjacents;
 
+   Removed_Rolls : Natural := 0;
 begin
    declare
       Grid_File : File_Type;
@@ -72,21 +73,29 @@ begin
 
    for M in Row'Range loop
       for N in Column'Range loop
-         Roll_Here (M, N) := Roll_Grid (M)(N) = '@';
+         if Roll_Grid (M)(N) = '@' then
+            Roll_Here (M, N) := True;
+         end if;
       end loop;
    end loop;
 
-   declare
-      Accessible_Rolls : Natural := 0;
-      Adjacents : constant Adjacency := Compute_Adjacents (Roll_Here);
-   begin
-      for M in Row'Range loop
-         for N in Column'Range loop
-            if Roll_Here (M, N) and then Adjacents (M, N) < 4 then
-               Accessible_Rolls := Accessible_Rolls + 1;
-            end if;
+   loop
+      declare
+         Accessible_Rolls : Natural := 0;
+         Adjacents : constant Adjacency := Compute_Adjacents (Roll_Here);
+      begin
+         for M in Row'Range loop
+            for N in Column'Range loop
+               if Roll_Here (M, N) and then Adjacents (M, N) < 4 then
+                  Roll_Here (M, N) := False;
+                  Accessible_Rolls := Accessible_Rolls + 1;
+               end if;
+            end loop;
          end loop;
-      end loop;
-      Put_Line ("Total accessible rolls:" & Accessible_Rolls'Image);
-   end;
+         Removed_Rolls := Removed_Rolls + Accessible_Rolls;
+         Put_Line ("Accessible rolls:" & Accessible_Rolls'Image);
+         exit when Accessible_Rolls = 0;
+      end;
+   end loop;
+   Put_Line ("Total removed rolls:" & Removed_Rolls'Image);
 end Day4;
