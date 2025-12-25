@@ -2,7 +2,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 
 procedure Day5 is
-   Ingredients_File_Name : constant String := "test.txt";
+   Ingredients_File_Name : constant String := "input.txt";
 
    type Cardinality is
       record
@@ -29,10 +29,10 @@ procedure Day5 is
 
    type Id_Range is
       record
-         Low, High : Natural := 0;
+         Low, High : Long_Integer := 0;
       end record;
    Id_Ranges : array (1 .. C.N_Ranges) of Id_Range;
-   Ingredients : array (1 .. C.N_Ingredients) of Natural;
+   Ingredients : array (1 .. C.N_Ingredients) of Long_Integer;
    Fresh : Natural := 0;
 begin
    declare
@@ -44,13 +44,13 @@ begin
             Line : constant String := Get_Line (Ingredients_File);
             Dash_Pos : constant Natural := Index (Line, "-");
          begin
-            R.Low := Natural'Value (Line (1 .. Dash_Pos - 1));
-            R.High := Natural'Value (Line (Dash_Pos + 1 .. Line'Last));
+            R.Low := Long_Integer'Value (Line (1 .. Dash_Pos - 1));
+            R.High := Long_Integer'Value (Line (Dash_Pos + 1 .. Line'Last));
          end;
       end loop;
       Skip_Line (Ingredients_File); -- empty line
       for I of Ingredients loop
-         I := Natural'Value (Get_Line (Ingredients_File));
+         I := Long_Integer'Value (Get_Line (Ingredients_File));
       end loop;
       Close (Ingredients_File);
    end;
