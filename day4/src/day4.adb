@@ -27,14 +27,38 @@ procedure Day4 is
 
    Grid_File_Name : constant String := "test.txt";
    Grid_Size : constant Dimension := Get_Grid_Size (Grid_File_Name);
+
    subtype Row is Positive range 1 .. Grid_Size.Y;
    subtype Column is Positive range 1 .. Grid_Size.X;
 
    Roll_Grid : array (Row'Range) of String (Column'Range);
-   Roll_Here : array (Row'Range, Column'Range) of Boolean :=
-      (others => (others => False));
-   Adjacents : array (Row'Range, Column'Range) of Natural :=
-      (others => (others => 0));
+
+   type Grid_Presence is array (Row'Range, Column'Range) of Boolean;
+   Roll_Here : Grid_Presence := (others => (others => False));
+
+   type Adjacency is array
+      (0 .. Row'Last + 1, 0 .. Column'Last + 1) of Natural;
+
+   function Compute_Adjacents (Presence : Grid_Presence) return Adjacency is
+   begin
+      return Matrix : Adjacency := (others => (others => 0)) do
+         for M in Row'Range loop
+            for N in Column'Range loop
+               if Presence (M, N) then
+                  Matrix (M, N + 1) := Matrix (M, N + 1) + 1;
+                  Matrix (M, N - 1) := Matrix (M, N - 1) + 1;
+                  Matrix (M + 1, N) := Matrix (M + 1, N) + 1;
+                  Matrix (M + 1, N + 1) := Matrix (M + 1, N + 1) + 1;
+                  Matrix (M + 1, N - 1) := Matrix (M + 1, N - 1) + 1;
+                  Matrix (M - 1, N) := Matrix (M - 1, N) + 1;
+                  Matrix (M - 1, N + 1) := Matrix (M - 1, N + 1) + 1;
+                  Matrix (M - 1, N - 1) := Matrix (M - 1, N - 1) + 1;
+               end if;
+            end loop;
+         end loop;
+      end return;
+   end Compute_Adjacents;
+
 begin
    declare
       Grid_File : File_Type;
@@ -48,38 +72,13 @@ begin
 
    for M in Row'Range loop
       for N in Column'Range loop
-         if Roll_Grid (M)(N) = '@' then
-            Roll_Here (M, N) := True;
-            if M + 1 in Row'Range then
-               Adjacents (M + 1, N) := Adjacents (M + 1, N) + 1;
-               if N + 1 in Column'Range then
-                  Adjacents (M + 1, N + 1) := Adjacents (M + 1, N + 1) + 1;
-               end if;
-               if N - 1 in Column'Range then
-                  Adjacents (M + 1, N - 1) := Adjacents (M + 1, N - 1) + 1;
-               end if;
-            end if;
-            if M - 1 in Row'Range then
-               Adjacents (M - 1, N) := Adjacents (M - 1, N) + 1;
-               if N + 1 in Column'Range then
-                  Adjacents (M - 1, N + 1) := Adjacents (M - 1, N + 1) + 1;
-               end if;
-               if N - 1 in Column'Range then
-                  Adjacents (M - 1, N - 1) := Adjacents (M - 1, N - 1) + 1;
-               end if;
-            end if;
-            if N + 1 in Column'Range then
-               Adjacents (M, N + 1) := Adjacents (M, N + 1) + 1;
-            end if;
-            if N - 1 in Column'Range then
-               Adjacents (M, N - 1) := Adjacents (M, N - 1) + 1;
-            end if;
-         end if;
+         Roll_Here (M, N) := Roll_Grid (M)(N) = '@';
       end loop;
    end loop;
 
    declare
       Accessible_Rolls : Natural := 0;
+      Adjacents : constant Adjacency := Compute_Adjacents (Roll_Here);
    begin
       for M in Row'Range loop
          for N in Column'Range loop
