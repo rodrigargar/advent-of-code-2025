@@ -1,0 +1,12 @@
+name = "day6"
+description = "Advent of Code Day 6"
+version = "0.1.0-dev"
+
+authors = ["Rodrigo Garcia"]
+maintainers = ["Rodrigo Garcia <rgarcia.garcia@gmail.com>"]
+maintainers-logins = ["rodrigargar"]
+licenses = "GPL-3.0-or-later"
+website = ""
+tags = ["contest"]
+
+executables = ["day6"]
