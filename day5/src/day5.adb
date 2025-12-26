@@ -1,8 +1,9 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+with Ada.Containers.Generic_Constrained_Array_Sort;
 
 procedure Day5 is
-   Ingredients_File_Name : constant String := "input.txt";
+   Ingredients_File_Name : constant String := "test.txt";
 
    type Cardinality is
       record
@@ -31,7 +32,22 @@ procedure Day5 is
       record
          Low, High : Long_Integer := 0;
       end record;
-   Id_Ranges : array (1 .. C.N_Ranges) of Id_Range;
+
+   function "<" (Left, Right : Id_Range) return Boolean is
+   begin
+      return Left.Low < Right.Low;
+   end "<";
+
+   subtype Id_Range_Index is Positive range 1 .. C.N_Ranges;
+   type Id_Range_Array is array (Id_Range_Index) of Id_Range;
+   Id_Ranges : Id_Range_Array;
+
+   procedure Sort_Id_Ranges is new
+      Ada.Containers.Generic_Constrained_Array_Sort (
+         Index_Type => Id_Range_Index,
+         Element_Type => Id_Range,
+         Array_Type => Id_Range_Array);
+
    Ingredients : array (1 .. C.N_Ingredients) of Long_Integer;
    Fresh : Natural := 0;
 begin
@@ -63,6 +79,24 @@ begin
          end if;
       end loop;
    end loop;
+   Put_Line ("Number of fresh ingredients:" & Fresh'Image);
 
-   Put_Line ("The number of fresh ingredients:" & Fresh'Image);
+   Sort_Id_Ranges (Id_Ranges);
+   declare
+      Union_Range : Id_Range;
+      Valid_Ids : Long_Integer := 0;
+   begin
+      for R of Id_Ranges loop
+         if R.Low > Union_Range.High then
+            Valid_Ids := Valid_Ids + R.High - R.Low + 1;
+            Union_Range := R;
+         elsif R.Low <= Union_Range.High then
+            if R.High > Union_Range.High then
+               Valid_Ids := Valid_Ids + R.High - Union_Range.High;
+               Union_Range.High := R.High;
+            end if;
+         end if;
+      end loop;
+      Put_Line ("Total valid ingredient IDs:" & Valid_Ids'Image);
+   end;
 end Day5;
