@@ -98,21 +98,53 @@ procedure Day8 is
       (Ada.Containers.Count_Type (Connected_Boxes));
 
    subtype Closest is Positive range 1 .. Connections;
-   type Circuits is array (Closest) of Box_Set;
+   type Box_Groups is array (Closest) of Box_Set;
+   type Groups_Access is access Box_Groups;
+   Circuits : Groups_Access := new Box_Groups;
 
    function "<" (Left, Right : Box_Set) return Boolean is
       use Ada.Containers;
    begin
-      return Left.Length < Right.Length;
+      return Left.Length > Right.Length;
    end "<";
 
    procedure Sort_Circuits is new
       Ada.Containers.Generic_Constrained_Array_Sort (
          Index_Type => Closest,
          Element_Type => Box_Set,
-         Array_Type => Circuits);
+         Array_Type => Box_Groups);
 begin
    Sort_Distance_Pairs (Distances);
-   Put_Line (Boxes'Image);
-   Put_Line (Distances'Image);
+   for C in Closest'Range loop
+      Circuits (C).Include (Distances (C).A);
+      Circuits (C).Include (Distances (C).B);
+   end loop;
+   declare
+      Found_Overlap : Boolean := False;
+   begin
+      loop
+         Found_Overlap := False;
+         for I in Closest'Range loop
+            for J in Closest'Range loop
+               if I /= J then
+                  if Circuits (I).Overlap (Circuits (J)) then
+                     Circuits (I).Union (Circuits (J));
+                     Circuits (J).Clear;
+                     Found_Overlap := True;
+                  end if;
+               end if;
+            end loop;
+         end loop;
+         exit when not Found_Overlap;
+      end loop;
+   end;
+   Sort_Circuits (Circuits.all);
+   declare
+      Product : constant Long_Integer :=
+         [for C in 1 .. 3 =>
+            Long_Integer (Circuits (C).Length)]'Reduce ("*", 1);
+   begin
+      Put_Line ("Product of the sizes of the biggest 3 circuits" &
+         Product'Image);
+   end;
 end Day8;
