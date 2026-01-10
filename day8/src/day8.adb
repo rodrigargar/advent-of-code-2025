@@ -2,13 +2,13 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings;
 with Ada.Strings.Maps;
 with Ada.Strings.Fixed;
+with Ada.Containers.Vectors;
 with Ada.Containers.Generic_Array_Sort;
-with Ada.Containers.Bounded_Ordered_Sets;
+with Ada.Containers.Ordered_Sets;
 
 procedure Day8 is
    Boxes_File_Name : constant String := "test.txt";
    Connections : constant Positive := 10;
-   Connected_Boxes : constant Positive := 2 * Connections;
 
    type Position is
       record
@@ -91,17 +91,14 @@ procedure Day8 is
    Distances : Box_Distances := Get_Distances (Boxes);
 
    package Box_Sets is new
-      Ada.Containers.Bounded_Ordered_Sets (Element_Type => Positive);
-
-   subtype Box_Set is Box_Sets.Set
-      (Ada.Containers.Count_Type (Connected_Boxes));
+      Ada.Containers.Ordered_Sets (Element_Type => Positive);
 
    subtype Closest is Positive range 1 .. Connections;
-   type Box_Groups is array (Positive range <>) of Box_Set;
+   type Box_Groups is array (Positive range <>) of Box_Sets.Set;
    type Groups_Access is access Box_Groups;
    Circuits : constant Groups_Access := new Box_Groups (Distances'Range);
 
-   function "<" (Left, Right : Box_Set) return Boolean is
+   function "<" (Left, Right : Box_Sets.Set) return Boolean is
       use Ada.Containers;
    begin
       return Left.Length > Right.Length;
@@ -110,7 +107,7 @@ procedure Day8 is
    procedure Sort_Circuits is new
       Ada.Containers.Generic_Array_Sort (
          Index_Type => Positive,
-         Element_Type => Box_Set,
+         Element_Type => Box_Sets.Set,
          Array_Type => Box_Groups);
 begin
    Sort_Distance_Pairs (Distances);
