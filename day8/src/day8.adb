@@ -3,7 +3,6 @@ with Ada.Strings;
 with Ada.Strings.Maps;
 with Ada.Strings.Fixed;
 with Ada.Containers.Generic_Array_Sort;
-with Ada.Containers.Generic_Constrained_Array_Sort;
 with Ada.Containers.Bounded_Ordered_Sets;
 
 procedure Day8 is
@@ -98,9 +97,9 @@ procedure Day8 is
       (Ada.Containers.Count_Type (Connected_Boxes));
 
    subtype Closest is Positive range 1 .. Connections;
-   type Box_Groups is array (Closest) of Box_Set;
+   type Box_Groups is array (Positive range <>) of Box_Set;
    type Groups_Access is access Box_Groups;
-   Circuits : Groups_Access := new Box_Groups;
+   Circuits : constant Groups_Access := new Box_Groups (Distances'Range);
 
    function "<" (Left, Right : Box_Set) return Boolean is
       use Ada.Containers;
@@ -109,8 +108,8 @@ procedure Day8 is
    end "<";
 
    procedure Sort_Circuits is new
-      Ada.Containers.Generic_Constrained_Array_Sort (
-         Index_Type => Closest,
+      Ada.Containers.Generic_Array_Sort (
+         Index_Type => Positive,
          Element_Type => Box_Set,
          Array_Type => Box_Groups);
 begin
@@ -124,14 +123,12 @@ begin
    begin
       loop
          Found_Overlap := False;
-         for I in Closest'Range loop
-            for J in Closest'Range loop
-               if I /= J then
-                  if Circuits (I).Overlap (Circuits (J)) then
-                     Circuits (I).Union (Circuits (J));
-                     Circuits (J).Clear;
-                     Found_Overlap := True;
-                  end if;
+         for I in Closest'First + 1 .. Closest'Last loop
+            for J in Closest'First .. I - 1 loop
+               if Circuits (I).Overlap (Circuits (J)) then
+                  Circuits (I).Union (Circuits (J));
+                  Circuits (J).Clear;
+                  Found_Overlap := True;
                end if;
             end loop;
          end loop;
