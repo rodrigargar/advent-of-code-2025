@@ -28,6 +28,7 @@ procedure Day8 is
 
    function Compute_Distance (A, B : Position) return Long_Integer is
    begin
+      --  No need to take the square root for comparing distances
       return (A.X - B.X) ** 2 + (A.Y - B.Y) ** 2 + (A.Z - B.Z) ** 2;
    end Compute_Distance;
 
@@ -93,52 +94,100 @@ procedure Day8 is
    package Box_Sets is new
       Ada.Containers.Ordered_Sets (Element_Type => Positive);
 
-   subtype Closest is Positive range 1 .. Connections;
-   type Box_Groups is array (Positive range <>) of Box_Sets.Set;
-   type Groups_Access is access Box_Groups;
-   Circuits : constant Groups_Access := new Box_Groups (Distances'Range);
+   type Box_Set_Access is access Box_Sets.Set;
 
-   function "<" (Left, Right : Box_Sets.Set) return Boolean is
+   subtype Closest is Positive range 1 .. Connections;
+
+   package Circuits_Vectors is new Ada.Containers.Vectors (
+      Index_Type => Positive,
+      Element_Type => Box_Set_Access);
+
+   function "<" (Left, Right : Box_Set_Access) return Boolean is
       use Ada.Containers;
    begin
       return Left.Length > Right.Length;
    end "<";
 
-   procedure Sort_Circuits is new
-      Ada.Containers.Generic_Array_Sort (
-         Index_Type => Positive,
-         Element_Type => Box_Sets.Set,
-         Array_Type => Box_Groups);
+   package Circuits_Sorting is new Circuits_Vectors.Generic_Sorting;
+
+   Circuits : Circuits_Vectors.Vector;
+
+   procedure Reduce_Circuits is
+   begin
+      for I in Circuits.First_Index .. Circuits.Last_Index - 1 loop
+         for J in I + 1 .. Circuits.Last_Index loop
+            if Circuits (I).all.Overlap (Circuits (J).all) then
+               Circuits (I).all.Union (Circuits (J).all);
+               Circuits (J).all.Clear;
+               Circuits.Delete (J);
+               return;
+            end if;
+         end loop;
+      end loop;
+   end Reduce_Circuits;
+
+   procedure Insert_Pair (D : Pair_Distance; Found : out Boolean) is
+   begin
+      Found := False;
+      for S of Circuits loop
+         if S.Contains (D.A) then
+            S.Include (D.B);
+            Found := True;
+            exit;
+         elsif S.Contains (D.B) then
+            S.Include (D.A);
+            Found := True;
+            exit;
+         end if;
+      end loop;
+      if not Found then
+         Circuits.Append (new Box_Sets.Set);
+         Circuits.Last_Element.Insert (D.A);
+         Circuits.Last_Element.Insert (D.B);
+      end if;
+   end Insert_Pair;
 begin
    Sort_Distance_Pairs (Distances);
+
+   --  First part
    for C in Closest'Range loop
-      Circuits (C).Include (Distances (C).A);
-      Circuits (C).Include (Distances (C).B);
+      declare
+         Junction_Found : Boolean := False;
+      begin
+         Insert_Pair (Distances (C), Junction_Found);
+         if Junction_Found then
+            Reduce_Circuits;
+         end if;
+      end;
    end loop;
-   declare
-      Found_Overlap : Boolean := False;
-   begin
-      loop
-         Found_Overlap := False;
-         for I in Closest'First + 1 .. Closest'Last loop
-            for J in Closest'First .. I - 1 loop
-               if Circuits (I).Overlap (Circuits (J)) then
-                  Circuits (I).Union (Circuits (J));
-                  Circuits (J).Clear;
-                  Found_Overlap := True;
-               end if;
-            end loop;
-         end loop;
-         exit when not Found_Overlap;
-      end loop;
-   end;
-   Sort_Circuits (Circuits.all);
+   Circuits_Sorting.Sort (Circuits);
    declare
       Product : constant Long_Integer :=
          [for C in 1 .. 3 =>
-            Long_Integer (Circuits (C).Length)]'Reduce ("*", 1);
+            Long_Integer (Circuits (C).all.Length)]'Reduce ("*", 1);
    begin
       Put_Line ("Product of the sizes of the biggest 3 circuits" &
          Product'Image);
    end;
+
+   --  Second part
+   for C in Closest'Last + 1 .. Distances'Last loop
+      declare
+         use Ada.Containers;
+         Junction_Found : Boolean := False;
+      begin
+         Insert_Pair (Distances (C), Junction_Found);
+         if Junction_Found then
+            Reduce_Circuits;
+            if Circuits.Length = 1 and then
+               Circuits (1).all.Length = Boxes'Length
+            then
+               Put_Line ("Product of the X coordinates " &
+                  "of the last two junction boxes:" & Long_Integer'Image
+                  (Boxes (Distances (C).A).X * Boxes (Distances (C).B).X));
+               exit;
+            end if;
+         end if;
+      end;
+   end loop;
 end Day8;
